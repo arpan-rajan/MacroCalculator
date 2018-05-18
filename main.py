@@ -28,6 +28,12 @@ units_last_chunk_pattern = r"""
   UP: {<CD>+<NN|NNS>{0,1}}   # chunk units of measure
 """
 cp = RegexpParser(units_first_chunk_pattern)
+
+#go through each ingredient, and chunk it
+#first try to get the unit of measure first, and then the ingredient itself
+# this works for "5 cups blue eggs"
+#if that doesnt work, then get the ingredient first and then the unit of measure
+# this works for "5 eggs"
 for ingredient in ingredients:
     print(ingredient)
     tokens = pos_tag(word_tokenize(ingredient))
@@ -35,4 +41,14 @@ for ingredient in ingredients:
     treeList = [x for x in tree]
     if(len(treeList) > 1):
         first, second ,*rest = treeList
-        print(first.label())
+        if type(first) is Tree and type(second) is Tree:
+            if(first.label() == "UP"):
+                amount = []
+                units = []
+                for thing in first:
+                    if(thing[1] == "CD"):
+                        amount.append(thing[0])
+                    else:
+                        units.append(thing[0])
+                print("Amount", amount)
+                print("units", units)
