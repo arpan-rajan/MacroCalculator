@@ -17,13 +17,13 @@ scrape_me.instructions()
 scrape_me.links()
 units_first_chunk_pattern = r"""
   UP: {<CD>+<NN|NNS>{0,1}}   # chunk units of measure
-  NP: {<DT|PP\$>?<JJ|VBG|VBD>*<NN>+}   # chunk determiner/possessive, adjectives and noun
+  NP: {<DT|PP\$>?<JJ|VBG|VBD>*<NN|NNS>+}   # chunk determiner/possessive, adjectives and noun
       {<NNP>+}                # chunk sequences of proper nouns
 
 """
 
 units_last_chunk_pattern = r"""
-  NP: {<DT|PP\$>?<JJ|VBG|VBD>*<NN>+}   # chunk determiner/possessive, adjectives and noun
+  NP: {<DT|PP\$>?<JJ|VBG|VBD>*<NN|NNS>+}   # chunk determiner/possessive, adjectives and noun
       {<NNP>+}                # chunk sequences of proper nouns
   UP: {<CD>+<NN|NNS>{0,1}}   # chunk units of measure
 """
@@ -34,7 +34,7 @@ cp = RegexpParser(units_first_chunk_pattern)
 # this works for "5 cups blue eggs"
 #if that doesnt work, then get the ingredient first and then the unit of measure
 # this works for "5 eggs"
-for ingredient in ingredients:
+for ingredient in ingredients[4:6]:
     print(ingredient)
     tokens = pos_tag(word_tokenize(ingredient))
     tree = cp.parse(tokens)
@@ -50,5 +50,7 @@ for ingredient in ingredients:
                         amount.append(thing[0])
                     else:
                         units.append(thing[0])
-                print("Amount", amount)
-                print("units", units)
+    else:
+        ingredient_first_parser = RegexpParser(units_last_chunk_pattern)
+        tree = ingredient_first_parser.parse(tokens)
+        print(tree)
