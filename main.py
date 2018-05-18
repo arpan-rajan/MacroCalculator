@@ -15,12 +15,24 @@ scrape_me.total_time()
 ingredients = scrape_me.ingredients()
 scrape_me.instructions()
 scrape_me.links()
-grammar = r"""
-  NP: {<DT|PP\$>?<JJ>*<NN>}   # chunk determiner/possessive, adjectives and noun
+units_first_chunk_pattern = r"""
+  UP: {<CD>+<NN|NNS>{0,1}}   # chunk units of measure
+  NP: {<DT|PP\$>?<JJ|VBG|VBD>*<NN>+}   # chunk determiner/possessive, adjectives and noun
       {<NNP>+}                # chunk sequences of proper nouns
-  UP: {<CD>+<NN|NNS>{0,1}}
+
 """
-cp = RegexpParser(grammar)
+
+units_last_chunk_pattern = r"""
+  NP: {<DT|PP\$>?<JJ|VBG|VBD>*<NN>+}   # chunk determiner/possessive, adjectives and noun
+      {<NNP>+}                # chunk sequences of proper nouns
+  UP: {<CD>+<NN|NNS>{0,1}}   # chunk units of measure
+"""
+cp = RegexpParser(units_first_chunk_pattern)
 for ingredient in ingredients:
+    print(ingredient)
     tokens = pos_tag(word_tokenize(ingredient))
     tree = cp.parse(tokens)
+    treeList = [x for x in tree]
+    if(len(treeList) > 1):
+        first, second ,*rest = treeList
+        print(first.label())
