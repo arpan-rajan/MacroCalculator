@@ -6,7 +6,10 @@ from textblob import TextBlob
 
 from nltk import ne_chunk, pos_tag, word_tokenize
 from nltk.tree import Tree
-
+#index for the actual text of the word in a parse tree
+LEMMA_INDEX = 0
+#index for part of speed tag of a word in a parse tree
+POS_TAG_INDEX = 1
 # give the url as a string, it can be url from any site listed below
 scrape_me = scrape_me('http://allrecipes.com/Recipe/Apple-Cake-Iv/Detail.aspx')
 
@@ -34,17 +37,17 @@ def splitUnitPhrase(unitChunk):
     amount = []
     units = []
     for thing in unitChunk:
-        if (thing[1] == "CD"):
-            amount.append(thing[0])
+        if (thing[POS_TAG_INDEX] == "CD"):
+            amount.append(thing[LEMMA_INDEX])
         else:
-            units.append(thing[0])
+            units.append(thing[LEMMA_INDEX])
     return amount, units
 
 
 def extractFullIngredientName(ingredientChunk):
     ingredient = []
     for thing in ingredientChunk:
-        ingredient.append(thing[0])
+        ingredient.append(thing[LEMMA_INDEX])
     return ingredient
 
 
