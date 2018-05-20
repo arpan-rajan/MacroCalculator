@@ -30,7 +30,7 @@ units_last_chunk_pattern = r"""
       {<NNP>+}                # chunk sequences of proper nouns
   UP: {<CD>+<NN|NNS>{0,1}}   # chunk units of measure
 """
-cp = RegexpParser(units_first_chunk_pattern)
+
 
 
 def splitUnitPhrase(unitChunk):
@@ -51,7 +51,7 @@ def extractFullIngredientName(ingredientChunk):
     return ingredient
 
 
-def extractElementsFromListItem(parsedListItem):
+def extract_elements_from_parsed_list_item(parsedListItem):
     amountNumber, unit, ingredient = [],[],[]
     if (len(parsedListItem) > 1):
         amount, unitOfMeasure, *rest = parsedListItem
@@ -63,6 +63,13 @@ def extractElementsFromListItem(parsedListItem):
     return amountNumber, unit, ingredient
 
 
+def extract_elements_from_list_item(tokenized_list_item, chunk_pattern):
+    ingredient_first_parser = RegexpParser(chunk_pattern)
+    tree = ingredient_first_parser.parse(tokens)
+    amount, unit, ingredient = extract_elements_from_parsed_list_item(tree)
+    return amount, unit, ingredient
+
+
 # go through each ingredient, and chunk it
 # first try to get the unit of measure first, and then the ingredient itself
 # this works for "5 cups blue eggs"
@@ -70,12 +77,9 @@ def extractElementsFromListItem(parsedListItem):
 # this works for "5 eggs"
 for item in ingredients:
     tokens = pos_tag(word_tokenize(item))
-    tree = cp.parse(tokens)
-    amount, unit, ingredient = extractElementsFromListItem(tree)
+    amount, unit, ingredient = extract_elements_from_list_item(tokens, units_first_chunk_pattern)
     if(amount and unit and ingredient):
         print(amount, unit, ingredient)
         continue
-    ingredient_first_parser = RegexpParser(units_last_chunk_pattern)
-    tree = ingredient_first_parser.parse(tokens)
-    amount, unit, ingredient = extractElementsFromListItem(tree)
+    amount, unit, ingredient = extract_elements_from_list_item(tokens, units_last_chunk_pattern)
     print(amount, unit, ingredient)
