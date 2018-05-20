@@ -29,28 +29,50 @@ units_last_chunk_pattern = r"""
 """
 cp = RegexpParser(units_first_chunk_pattern)
 
-#go through each ingredient, and chunk it
-#first try to get the unit of measure first, and then the ingredient itself
+
+def splitUnitPhrase(unitChunk):
+    amount = []
+    units = []
+    for thing in unitChunk:
+        if (thing[1] == "CD"):
+            amount.append(thing[0])
+        else:
+            units.append(thing[0])
+    return amount, units
+
+
+def extractFullIngredientName(ingredientChunk):
+    ingredient = []
+    for thing in ingredientChunk:
+        ingredient.append(thing[0])
+    return ingredient
+
+
+def extractElementsFromListItem(parsedListItem):
+    amountNumber, unit, ingredient = [],[],[]
+    if (len(parsedListItem) > 1):
+        amount, unitOfMeasure, *rest = parsedListItem
+        if type(amount) is Tree and type(unitOfMeasure) is Tree:
+            if (amount.label() == "UP"):
+                amountNumber, unit = splitUnitPhrase(amount)
+            if (unitOfMeasure.label() == "NP"):
+                ingredient = extractFullIngredientName(unitOfMeasure)
+    return amountNumber, unit, ingredient
+
+
+# go through each ingredient, and chunk it
+# first try to get the unit of measure first, and then the ingredient itself
 # this works for "5 cups blue eggs"
-#if that doesnt work, then get the ingredient first and then the unit of measure
+# if that doesnt work, then get the ingredient first and then the unit of measure
 # this works for "5 eggs"
-for ingredient in ingredients[4:6]:
-    print(ingredient)
-    tokens = pos_tag(word_tokenize(ingredient))
+for item in ingredients:
+    tokens = pos_tag(word_tokenize(item))
     tree = cp.parse(tokens)
-    treeList = [x for x in tree]
-    if(len(treeList) > 1):
-        first, second ,*rest = treeList
-        if type(first) is Tree and type(second) is Tree:
-            if(first.label() == "UP"):
-                amount = []
-                units = []
-                for thing in first:
-                    if(thing[1] == "CD"):
-                        amount.append(thing[0])
-                    else:
-                        units.append(thing[0])
-    else:
-        ingredient_first_parser = RegexpParser(units_last_chunk_pattern)
-        tree = ingredient_first_parser.parse(tokens)
-        print(tree)
+    amount, unit, ingredient = extractElementsFromListItem(tree)
+    if(amount and unit and ingredient):
+        print(amount, unit, ingredient)
+        continue
+    ingredient_first_parser = RegexpParser(units_last_chunk_pattern)
+    tree = ingredient_first_parser.parse(tokens)
+    amount, unit, ingredient = extractElementsFromListItem(tree)
+    print(amount, unit, ingredient)
